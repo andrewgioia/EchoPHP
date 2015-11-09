@@ -23,6 +23,6 @@ Currently the only supported functions are adding cards individually and via bul
 
     $echomtg->addCard( 4797, 1, 1.50, 0 );
 
-The only required parameter is the first one, the card's [http://gatherer.wizards.com](Multiverse ID), i.e., it's ID in Gatherer. You can get this by hand by searching for the card/printing there or using the [http://mtgjson.com](MTGJSon) API (or similar services).
+The only required parameter is the first one, the card's [Mutiverse ID](http://gatherer.wizards.com), i.e., it's ID in Gatherer. You can get this by hand by searching for the card/printing there or using the [MTGJson](http://mtgjson.com) API (or similar services).
 
 The other parameters are quantity, your purchase price, and whether the card is foil (1) or not (0).
