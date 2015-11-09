@@ -47,8 +47,6 @@ class EchoPHP {
             session_start();
         }
 
-        //echo "Session: ".$_SESSION[ 'echophp_session' ]."<br />";
-
         if ( ! $_SESSION[ 'echophp_session' ] || $_SESSION[ 'echophp_session' ] == '' )
         {
             $token = $this->authenticate();
@@ -69,7 +67,6 @@ class EchoPHP {
         else
         {
             $this->auth_token = $_SESSION[ 'echophp_session' ];
-            echo "Auth token: ".$this->auth_token."<br />";
             return true;
         }
 
@@ -167,9 +164,6 @@ class EchoPHP {
         $fields[ 'type' ] = 'curl';
         $data = http_build_query( $fields );
 
-        echo "Post sent: "; print_r( $data ); echo "<br /><br />";
-        //exit;
-
         // get the url to post to
         $post = ( $endpoint )
             ? $this->api_host.$endpoint
@@ -179,15 +173,15 @@ class EchoPHP {
         $ch = curl_init();
 
         // set URL and other appropriate options
-        curl_setopt( $ch, CURLOPT_URL, $post.$data );
+        curl_setopt( $ch, CURLOPT_URL, $post );
 
         // using SSL
         curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
         curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
 
         // query and header options
-        //curl_setopt( $ch, CURLOPT_POST, 1 );
-        //curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
+        curl_setopt( $ch, CURLOPT_POST, 1 );
+        curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
         curl_setopt( $ch, CURLOPT_HEADER, false ) ;
         curl_setopt( $ch, CURLINFO_HEADER_OUT, true );
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
