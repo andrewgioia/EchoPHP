@@ -161,7 +161,7 @@ class EchoPHP {
     {
         // build the query from the data fields
         if ( $auth ) { $fields[ 'auth' ] = $this->auth_token; }
-        $fields[ 'type' ] = 'curl';
+        //$fields[ 'type' ] = 'curl';
         $data = http_build_query( $fields );
 
         // get the url to post to
@@ -173,15 +173,15 @@ class EchoPHP {
         $ch = curl_init();
 
         // set URL and other appropriate options
-        curl_setopt( $ch, CURLOPT_URL, $post );
+        curl_setopt( $ch, CURLOPT_URL, $post.$data );    // using GET for now
 
         // using SSL
         curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
         curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
 
         // query and header options
-        curl_setopt( $ch, CURLOPT_POST, 1 );
-        curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
+        //curl_setopt( $ch, CURLOPT_POST, 1 );           // using GET for now
+        //curl_setopt( $ch, CURLOPT_POSTFIELDS, $data ); //
         curl_setopt( $ch, CURLOPT_HEADER, false ) ;
         curl_setopt( $ch, CURLINFO_HEADER_OUT, true );
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
