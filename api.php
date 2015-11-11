@@ -15,13 +15,16 @@ class EchoPHP {
     /**
      * API constants */
     private $api_host = 'https://www.echomtg.com/api/';
+    private $debug_mode = true; // set to true to enable debugging
 
     /**
      * Class variables */
     protected $auth_token;
     protected $auth_message;
     protected $auth_status;
+
     public $error = false;
+    public $debug = array();
 
     /**
      * @param string $email (user's email address)
@@ -54,6 +57,7 @@ class EchoPHP {
             {
                 $this->auth_token = $token;
                 $_SESSION[ 'echophp_session' ] = $token;
+                $this->debugInfo( [ 'session' => [ 'login', $_SESSION[ 'echophp_session' ] ] ] );
                 return true;
             }
             else
@@ -61,12 +65,14 @@ class EchoPHP {
                 $this->postError( [
                     'status' => 'error',
                     'message' => 'Unable to authentication, incorrect email or password' ] );
+                $this->debugInfo( [ 'session' => [ 'error', $_SESSION[ 'echophp_session' ] ] ] );
                 return false;
             }
         }
         else
         {
             $this->auth_token = $_SESSION[ 'echophp_session' ];
+            $this->debugInfo( [ 'session' => [ 'saved', $_SESSION[ 'echophp_session' ] ] ] );
             return true;
         }
 
@@ -84,6 +90,8 @@ class EchoPHP {
         session_start();
         unset( $_SESSION[ 'echophp_session' ] );
         session_destroy();
+
+        $this->debugInfo( [ 'session' => $_SESSION[ 'echophp_session' ] ] );
     }
 
 
@@ -114,13 +122,54 @@ class EchoPHP {
         $card[ 'foil' ] = $foil;
         if ( $acquired )
         {
-            $card[ 'acquired_price' ] = $acquired;
+            $card[ 'price_acquired' ] = $acquired;
         }
 
+        // attempt to add the card
         $response = $this->sendPost(
             'inventory/add/',
             $card,
             true );
+        $response = json_decode( $response );
+
+        // set some debug logging
+        $this->debugInfo( [ 'add_card' => $response ] );
+
+        return $response;
+    }
+
+
+    /**
+     * Get user's inventory
+     *
+     * @param int $start
+     * @param int $end
+     * @return array
+     */
+    public function getInventory( $start = 0, $end = 9 )
+    {
+        // check that start and end are integers
+        if ( ! is_int( $start ) || ! is_int( $end ) )
+        {
+            $this->postError( [
+                'status' => 'error',
+                'message' => 'Invalid card multiverse ID' ] );
+        }
+
+        // set the data fields
+        $query[ 'start' ] = $start;
+        $query[ 'limit' ] = $end;
+
+        // attempt to add the card
+        $response = $this->sendPost(
+            'inventory/view/',
+            $query,
+            true,
+            false );
+        $response = json_decode( $response );
+
+        // set some debug logging
+        $this->debugInfo( [ 'view_inventory' => $response ] );
 
         return $response;
     }
@@ -133,11 +182,18 @@ class EchoPHP {
      */
     private function authenticate()
     {
+        // attempt to login
         $response = $this->sendPost(
             'user/auth/',
-            [ 'email' => $this->email, 'password' => $this->password ] );
+            [ 'email' => $this->email, 'password' => $this->password ],
+            false,
+            true );
         $response = json_decode( $response );
 
+        // set some debug logging
+        $this->debugInfo( [ 'auth' => $response ] );
+
+        // return the token if we have it
         if ( isset( $response->status ) && $response->status == 'success' )
         {
             return $response->token;
@@ -155,33 +211,50 @@ class EchoPHP {
      * @param $endpoint (path to api call)
      * @param $fields (array of data fields to send in the POST)
      * @param $auth (flag for whether this request is authenticated)
+     * @param $post (flag for sending as a post, otherwise get)
      * @return obj (json response)
      */
-    private function sendPost( $endpoint = false, $fields = array(), $auth = false )
+    private function sendPost(
+        $endpoint = false,
+        $fields = array(),
+        $auth = false,
+        $post = true )
     {
         // build the query from the data fields
         if ( $auth ) { $fields[ 'auth' ] = $this->auth_token; }
-        //$fields[ 'type' ] = 'curl';
         $data = http_build_query( $fields );
 
         // get the url to post to
-        $post = ( $endpoint )
+        $uri = ( $endpoint )
             ? $this->api_host.$endpoint
             : $this->api_host;
+
+        // set some debug logging
+        $type = ( $post ) ? 'post' : 'get';
+        $this->debugInfo( [ $type => [ $uri, $data ] ] );
+
+        // create the full request based on post/get status
+        $request = ( $post )
+            ? $uri
+            : $uri.$data;
 
         // create a new cURL resource
         $ch = curl_init();
 
         // set URL and other appropriate options
-        curl_setopt( $ch, CURLOPT_URL, $post.$data );    // using GET for now
+        curl_setopt( $ch, CURLOPT_URL, $request );
 
         // using SSL
         curl_setopt( $ch, CURLOPT_SSL_VERIFYPEER, false );
         curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
 
+        // post headers
+        if ( $post ) {
+            curl_setopt( $ch, CURLOPT_POST, 1 );
+            curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
+        }
+
         // query and header options
-        //curl_setopt( $ch, CURLOPT_POST, 1 );           // using GET for now
-        //curl_setopt( $ch, CURLOPT_POSTFIELDS, $data ); //
         curl_setopt( $ch, CURLOPT_HEADER, false ) ;
         curl_setopt( $ch, CURLINFO_HEADER_OUT, true );
         curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
@@ -197,15 +270,28 @@ class EchoPHP {
 
 
     /**
-     * Print a supplied error to the screen
+     * Save to the error property
      *
      * @param @object (error array with status and message)
-     * @return boolean
+     * @return void
      */
     private function postError( $object )
     {
         $this->error = json_encode( $object );
-        return true;
+    }
+
+    /**
+     * Save to the debug property
+     *
+     * @param @object (debug array with status and message)
+     * @return void
+     */
+    private function debugInfo( $object )
+    {
+        if ( $this->debug_mode )
+        {
+            $this->debug[] = $object;
+        }
     }
 
 }
