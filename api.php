@@ -94,6 +94,9 @@ class EchoPHP {
     }
 
     /**
+     * MANAGE INVENTORY */
+
+    /**
      * Add X of one card to Inventory
      * @param int $m_id (card's multiverse ID)
      * @param int $quantity (amount to add)
@@ -103,7 +106,7 @@ class EchoPHP {
      * @return array (response)
      */
     public function addCard(
-        $mid = '',
+        $mid,
         $quantity = 1,
         $acquired_price = false,
         $acquired_date = false,
@@ -138,6 +141,39 @@ class EchoPHP {
 
         return $response;
     }
+
+    /**
+     * Remove card from inventory
+     *
+     * @param int $eid (echomtg inventory ID for card)
+     * @return boolean
+     */
+    public function removeCard( $eid )
+    {
+        // check that we have an integer  first
+        if ( ! is_int( $eid ) || $eid < 1 )
+        {
+            $this->postError( [
+                'status' => 'error',
+                'message' => 'The card ID is not an integer.' ] );
+            return false;
+        }
+
+        // attempt to remove the card
+        $response = $this->sendPost(
+            'inventory/remove/',
+            [ 'inventory_id' => $eid ],
+            true );
+
+        // set some debug logging
+        $this->debugInfo( [ 'remove_card' => $response ] );
+
+        return $response;
+    }
+
+
+    /**
+     * VIEW INVENTORY */
 
     /**
      * Get user's inventory
