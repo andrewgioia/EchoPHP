@@ -97,13 +97,19 @@ class EchoPHP {
 
     /**
      * Add X of one card to Inventory
-     * @param $m_id (card's multiverse ID)
-     * @param $quantity (amount to add)
-     * @param $acquired (set the purchase price)
-     * @param $foil (flag for whether the card is foil)
+     * @param int $m_id (card's multiverse ID)
+     * @param int $quantity (amount to add)
+     * @param float $acquired_price (set the purchase price)
+     * @param string $acquired_date (set the date of purchase, MM-DD-YYYY
+     * @param boolean $foil (flag for whether the card is foil)
      * @return object (response)
      */
-    public function addCard( $mid = '', $quantity = 1, $acquired = false, $foil = 0 )
+    public function addCard(
+        $mid = '',
+        $quantity = 1,
+        $acquired_price = false,
+        $acquired_date = false,
+        $foil = 0 )
     {
         // check that the multiverse ID is correct
         if ( is_numeric( $mid ) && strlen( $mid ) > 0 )
@@ -120,10 +126,8 @@ class EchoPHP {
         // add the remaining fields
         $card[ 'quantity' ] = $quantity;
         $card[ 'foil' ] = $foil;
-        if ( $acquired )
-        {
-            $card[ 'price_acquired' ] = $acquired;
-        }
+        if ( $acquired_price ) $card[ 'acquired_price' ] = $acquired_price;
+        if ( $acquired_date ) $card[ 'acquired_date' ] = $acquired_date;
 
         // attempt to add the card
         $response = $this->sendPost(

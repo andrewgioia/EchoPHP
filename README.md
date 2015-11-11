@@ -25,14 +25,20 @@ Currently the supported methods are adding cards individually and via bulk uploa
 
 To add a card individually, use the `addCard()` method:
 
-    $echomtg->addCard( 4797, 1, 1.50, 0 );
+    $echomtg->addCard( 4797, 1, 1.50, '08-20-2015', 0 );
 
 The only required parameter is the first one, the card's [Mutiverse ID](http://gatherer.wizards.com), i.e., it's ID in Gatherer. You can get this by hand by searching for the card/printing there or using the [MTGJson](http://mtgjson.com) API (or similar services).
 
-The other parameters are quantity, your purchase price, and whether the card is foil (1) or not (0).
+The other parameters are quantity, your purchase price, the date of your purchase in mm-dd-yyyy format, and whether the card is foil (1) or not (0).
 
 ### Getting the inventory
 
 Use the `getInventory()` method to return the user's inventory. The only parameters are start and end values to limit the query results. The following returns the most recent 10 cards:
 
     $echomtg->getInventory( 0, 9 );
+
+## Debugging
+
+To enable debugging mode, set the class property `$debug_mode` to true in `api.php`. This adds all auth, session, and requests/responses to the `$debug` property. Output that to view the current debugging log:
+
+    print_r( $echomtg->debug );
