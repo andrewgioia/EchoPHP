@@ -15,7 +15,6 @@ class EchoPHP {
     /**
      * API constants */
     private $api_host = 'https://www.echomtg.com/api/';
-    private $debug_mode = true; // set to true to enable debugging
 
     /**
      * Class variables */
@@ -23,6 +22,7 @@ class EchoPHP {
     protected $auth_message;
     protected $auth_status;
 
+    public $config;
     public $error = false;
     public $debug = array();
 
@@ -30,10 +30,11 @@ class EchoPHP {
      * @param string $email (user's email address)
      * @param string $password (user's password)
      */
-    public function __construct( $email, $password )
+    public function __construct()
     {
-        $this->email = $email;
-        $this->password = $password;
+        $this->config = parse_ini_file( 'config.local.ini' );
+        $this->email = $this->config[ 'email' ];
+        $this->password = $this->config[ 'password' ];
     }
 
     /**
@@ -79,7 +80,6 @@ class EchoPHP {
         return false;
     }
 
-
     /**
      * Destroy the authentication token and "log out"
      *
@@ -90,10 +90,8 @@ class EchoPHP {
         session_start();
         unset( $_SESSION[ 'echophp_session' ] );
         session_destroy();
-
         $this->debugInfo( [ 'session' => $_SESSION[ 'echophp_session' ] ] );
     }
-
 
     /**
      * Add X of one card to Inventory
@@ -102,7 +100,7 @@ class EchoPHP {
      * @param float $acquired_price (set the purchase price)
      * @param string $acquired_date (set the date of purchase, MM-DD-YYYY
      * @param boolean $foil (flag for whether the card is foil)
-     * @return object (response)
+     * @return array (response)
      */
     public function addCard(
         $mid = '',
@@ -134,14 +132,12 @@ class EchoPHP {
             'inventory/add/',
             $card,
             true );
-        $response = json_decode( $response );
 
         // set some debug logging
         $this->debugInfo( [ 'add_card' => $response ] );
 
         return $response;
     }
-
 
     /**
      * Get user's inventory
@@ -170,14 +166,12 @@ class EchoPHP {
             $query,
             true,
             false );
-        $response = json_decode( $response );
 
         // set some debug logging
         $this->debugInfo( [ 'view_inventory' => $response ] );
 
         return $response;
     }
-
 
     /**
      * Send an authentication request
@@ -192,7 +186,6 @@ class EchoPHP {
             [ 'email' => $this->email, 'password' => $this->password ],
             false,
             true );
-        $response = json_decode( $response );
 
         // set some debug logging
         $this->debugInfo( [ 'auth' => $response ] );
@@ -208,7 +201,6 @@ class EchoPHP {
         }
     }
 
-
     /**
      * Post to an EchoMTG API endpoint
      *
@@ -216,7 +208,7 @@ class EchoPHP {
      * @param $fields (array of data fields to send in the POST)
      * @param $auth (flag for whether this request is authenticated)
      * @param $post (flag for sending as a post, otherwise get)
-     * @return obj (json response)
+     * @return array (json response)
      */
     private function sendPost(
         $endpoint = false,
@@ -265,6 +257,7 @@ class EchoPHP {
 
         // get it
         $response = trim( curl_exec( $ch ) );
+        $response = json_decode( $response );
 
         // close the connection
         curl_close( $ch );
@@ -272,11 +265,10 @@ class EchoPHP {
         return $response;
     }
 
-
     /**
      * Save to the error property
      *
-     * @param @object (error array with status and message)
+     * @param array $object (error array with status and message)
      * @return void
      */
     private function postError( $object )
@@ -287,12 +279,12 @@ class EchoPHP {
     /**
      * Save to the debug property
      *
-     * @param @object (debug array with status and message)
+     * @param array $object (debug array with status and message)
      * @return void
      */
     private function debugInfo( $object )
     {
-        if ( $this->debug_mode )
+        if ( $this->config[ 'debug_mode' ] )
         {
             $this->debug[] = $object;
         }
