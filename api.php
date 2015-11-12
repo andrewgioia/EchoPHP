@@ -181,7 +181,7 @@ class EchoPHP {
 
         // set the parameters
         $request = [
-            'inventory_id' => $eid,
+            'id' => $eid,
             'adjusted_price' => $price ];
 
         // attempt to remove the card
