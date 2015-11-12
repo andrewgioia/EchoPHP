@@ -19,9 +19,11 @@ Note: `initSession()` will check to see if your auth token has been saved to you
 
 ## Usage
 
-Currently the supported methods are adding cards individually and via bulk upload, and viewing card inventory.
+This wrapper class is in development, check below for the currently supported api calls.
 
-### Adding cards to inventory `[POST]`
+### Managing Inventory
+
+#### Adding cards to inventory `[POST]`
 
 To add a card individually, use the `addCard()` method:
 
@@ -31,23 +33,25 @@ The only required parameter is the first one, the card's [Mutiverse ID](http://g
 
 The other parameters are quantity, your purchase price, the date of your purchase in mm-dd-yyyy format, and whether the card is foil (1) or not (0).
 
-### Removing cards from the inventory `[PUT]`
+#### Removing cards from the inventory `[PUT]`
 
 To remove a card by the inventory ID, use `removeCard()`. It only takes the ID of the card in your inventory.
 
-### Adjusting the acquisition price `[PUT]`
+#### Adjusting the acquisition price `[PUT]`
 
 To adjust the acquisition price of a card in inventory, call `adjustAcquiredPrice()`, passing in the card's inventory ID in your inventory and the price you want to set.
 
-### Toggling foil status `[PUT]`
+#### Toggling foil status `[PUT]`
 
 Set a card in inventory as a foil (1) or not foil (0) by calling `toggleFoil()`, passing in the card's inventory ID and the foil boolean.
 
-### Adjusting the acquisition date `[PUT]`
+#### Adjusting the acquisition date `[PUT]`
 
 To adjust the acquisition date of a card in inventory, call `adjustAcquiredDate()`, passing in the card's inventory ID and the date you want to set in `MM-DD-YYYY` format (`m-d-Y` in PHP `date()` lingo).
 
-### Getting the inventory `[POST]`
+### Viewing Inventory
+
+#### Getting the inventory `[POST]`
 
 Use the `getInventory()` method to return the user's inventory. The only parameters are start and end values to limit the query results. E.g., the following returns the most recent 10 cards:
 
