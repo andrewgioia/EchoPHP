@@ -14,11 +14,11 @@ Copy the `config.ini` file and rename it `config.local.ini`, then set the accoun
     $echomtg = new EchoPHP();
     $echomtg->initSession();
 
-Note: `initSession()` will check to see if your auth token has been saved to your current session; if it isn't, it posts to `/user/auth` to sign in you.
+Note: `initSession()` will check to see if your auth token has been saved to your current session; if it isn't, it posts to `/user/auth` to sign you in.
 
 ## Usage
 
-This wrapper class is in development, check below for the currently supported api calls.
+This wrapper class is in development, check below for the currently supported API calls.
 
 ### Managing Inventory
 
@@ -40,19 +40,19 @@ The other parameters are quantity, your purchase price, the date of your purchas
 
 #### Removing cards from the inventory
 
-To remove a card by the inventory ID, use `removeCard()`. It only takes the ID of the card in your inventory.
+To remove a card by the inventory ID, use `removeCard()`. It only takes the EchoMTG inventory ID ("EID") of the card in your inventory.
 
 #### Adjusting the acquisition price
 
-To adjust the acquisition price of a card in inventory, call `adjustAcquiredPrice()`, passing in the card's inventory ID in your inventory and the price you want to set.
+To adjust the acquisition price of a card in inventory, call `adjustAcquiredPrice()`, passing in the card's EID in your inventory and the price you want to set.
 
 #### Toggling foil status
 
-Set a card in inventory as a foil (1) or not foil (0) by calling `toggleFoil()`, passing in the card's inventory ID and the foil boolean.
+Set a card in inventory as a foil (1) or not foil (0) by calling `toggleFoil()`, passing in the card's EID and the foil boolean.
 
 #### Adjusting the acquisition date
 
-To adjust the acquisition date of a card in inventory, call `adjustAcquiredDate()`, passing in the card's inventory ID and the date you want to set in `MM-DD-YYYY` format (`m-d-Y` in PHP `date()` lingo).
+To adjust the acquisition date of a card in inventory, call `adjustAcquiredDate()`, passing in the card's EID and the date you want to set in `MM-DD-YYYY` format (`m-d-Y` in PHP `date()` lingo).
 
 ### Viewing Inventory
 
