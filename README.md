@@ -66,6 +66,10 @@ E.g., the following returns the most recent 10 cards that are green legends, sor
 
     $echomtg->getInventory( 0, 9, 'price', 'desc', null, 'Green', 'Legendary' );
 
+#### Getting inventory statistics
+
+Call the `getStats()` method to return the user's inventory stats. This takes no parameters and sends an authenticated GET.
+
 ## Debugging
 
 To enable debugging mode, set the class property `$debug_mode` to true in `api.php`. This adds all auth, session, and requests/responses to the `$debug` property. Output that to view the current debugging log:
