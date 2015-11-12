@@ -348,6 +348,26 @@ class EchoPHP {
         return $response;
     }
 
+    /**
+     * Return the user's inventory statistics
+     *
+     * @return array
+     */
+    public function getStats()
+    {
+        // make the request
+        $response = $this->sendPost(
+            'inventory/stats/',
+            [],
+            true,
+            'get' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'inventory_stats' => $response ] );
+
+        return $response;
+    }
+
 
     /**
      * CARD REFERENCE */
@@ -369,10 +389,14 @@ class EchoPHP {
                 'message' => 'You need to pass a card name to search' ] );
         }
 
+        // set the request fields
+        $request[ 'type' ] = 'json';
+        $request[ 'name' ] = $cardname; // does not do anything
+
         // pull in the master list
         $cards = $this->sendPost(
             'data/card_reference/',
-            [],
+            $request,
             true,
             'get' );
 
