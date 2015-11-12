@@ -60,7 +60,7 @@ To adjust the acquisition date of a card in inventory, call `adjustAcquiredDate(
 
 Use the `getInventory()` method to return the user's inventory. By default the method will return the most recently acquired 10 cards.
 
-You can pass in parameters for start and end values to limit the results, the attribute to sort on (`price, cmc, foil_price, date_aquired, set`), sort order (`desc, asc`), a card name to search, color (`Colorless, Multicolor, White, Blue, Black, Red, Green, Land`), card type (`Planeswalker, Sorcery, Instant, Creature, Artifact, Enchantment, Legendary, Land`), and set code.
+You can pass in parameters for start and end values to limit the results, the attribute to **sort** on (`price, cmc, foil_price, date_aquired, set`), sort **order** (`desc, asc`), a **card name** to search, **color** (`Colorless, Multicolor, White, Blue, Black, Red, Green, Land`), **card type** (`Planeswalker, Sorcery, Instant, Creature, Artifact, Enchantment, Legendary, Land`), and **set code**.
 
 E.g., the following returns the most recent 10 cards that are green legends, sorted by price descending:
 
