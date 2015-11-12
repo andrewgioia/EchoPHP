@@ -134,7 +134,8 @@ class EchoPHP {
         $response = $this->sendPost(
             'inventory/add/',
             $card,
-            true );
+            true,
+            'post' );
 
         // set some debug logging
         $this->debugInfo( [ 'add_card' => $response ] );
@@ -150,23 +151,114 @@ class EchoPHP {
      */
     public function removeCard( $eid )
     {
-        // check that we have an integer  first
-        if ( ! is_int( $eid ) || $eid < 1 )
-        {
-            $this->postError( [
-                'status' => 'error',
-                'message' => 'The card ID is not an integer.' ] );
-            return false;
-        }
+        // check that we have an integer first
+        $this->checkInventoryID( $eid );
 
         // attempt to remove the card
         $response = $this->sendPost(
             'inventory/remove/',
             [ 'inventory_id' => $eid ],
-            true );
+            true,
+            'post' );
 
         // set some debug logging
         $this->debugInfo( [ 'remove_card' => $response ] );
+
+        return $response;
+    }
+
+    /**
+     * Adjust acquisition price of a card in inventory
+     *
+     * @param int @eid (echo inventory ID for the card)
+     * @param float $price (adjusted acquisition price)
+     * @return array
+     */
+    public function adjustAcquiredPrice( $eid, $price )
+    {
+        // check that we have an integer first
+        $this->checkInventoryID( $eid );
+
+        // set the parameters
+        $request = [
+            'inventory_id' => $eid,
+            'adjusted_price' => $price ];
+
+        // attempt to remove the card
+        $response = $this->sendPost(
+            'inventory/adjust/',
+            $request,
+            true,
+            'put' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'adjust_price' => $response ] );
+
+        return $response;
+    }
+
+    /**
+     * Toggle the foil status of a card in inventory
+     *
+     * @param int @eid (echo inventory ID for the card)
+     * @param boolean $foil (0 for nonfoil, 1 for foil)
+     * @return array
+     */
+    public function toggleFoil( $eid, $foil = 1 )
+    {
+        // check that we have an integer first
+        $this->checkInventoryID( $eid );
+
+        // make sure it's a 0 or 1
+        $foil = ( $foil == 0 ) ? $foil : 1;
+
+        // set the parameters
+        $request = [
+            'id' => $eid,
+            'foil' => $foil ];
+
+        // attempt to remove the card
+        $response = $this->sendPost(
+            'inventory/toggle_foil/',
+            $request,
+            true,
+            'put' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'toggle_foil' => $response ] );
+
+        return $response;
+    }
+
+    /**
+     * Adjust acquisition price of a card in inventory
+     *
+     * @param int @eid (echo inventory ID for the card)
+     * @param string $date (date of card acquisition, in MM-DD-YYYY)
+     * @return array
+     */
+    public function adjustAcquiredDate( $eid, $date )
+    {
+        // check that we have an integer first
+        $this->checkInventoryID( $eid );
+
+        // format the date correctly
+        $date = date( 'm-d-Y', strtotime( $date ) );
+
+        // set the parameters
+        $request = [
+            'id' => $eid,
+            'value' => $date ];
+
+        // attempt to remove the card
+        $response = $this->sendPost(
+            'inventory/adjust_date/',
+            $request,
+            true,
+            'put' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'adjust_date' => $response ] );
 
         return $response;
     }
@@ -201,7 +293,7 @@ class EchoPHP {
             'inventory/view/',
             $query,
             true,
-            false );
+            'get' );
 
         // set some debug logging
         $this->debugInfo( [ 'view_inventory' => $response ] );
@@ -221,7 +313,7 @@ class EchoPHP {
             'user/auth/',
             [ 'email' => $this->email, 'password' => $this->password ],
             false,
-            true );
+            'post' );
 
         // set some debug logging
         $this->debugInfo( [ 'auth' => $response ] );
@@ -249,12 +341,17 @@ class EchoPHP {
     private function sendPost(
         $endpoint = false,
         $fields = array(),
-        $auth = false,
-        $post = true )
+        $auth = true,
+        $method = 'post' )
     {
         // build the query from the data fields
         if ( $auth ) { $fields[ 'auth' ] = $this->auth_token; }
         $data = http_build_query( $fields );
+
+        // check for the method
+        $method = ( ! in_array( $method, [ 'post', 'put', 'get' ] ) )
+            ? 'post'
+            : $method;
 
         // get the url to post to
         $uri = ( $endpoint )
@@ -262,13 +359,12 @@ class EchoPHP {
             : $this->api_host;
 
         // set some debug logging
-        $type = ( $post ) ? 'post' : 'get';
-        $this->debugInfo( [ $type => [ $uri, $data ] ] );
+        $this->debugInfo( [ $method => [ $uri, $data ] ] );
 
-        // create the full request based on post/get status
-        $request = ( $post )
-            ? $uri
-            : $uri.$data;
+        // create the full request based on post/get/put status
+        $request = ( $method == 'get' )
+            ? $uri.$data
+            : $uri;
 
         // create a new cURL resource
         $ch = curl_init();
@@ -281,8 +377,14 @@ class EchoPHP {
         curl_setopt( $ch, CURLOPT_SSL_VERIFYHOST, false );
 
         // post headers
-        if ( $post ) {
+        if ( $method == 'post' ) {
             curl_setopt( $ch, CURLOPT_POST, 1 );
+            curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
+        }
+        // put headers
+        else if ( $method == 'put' )
+        {
+            curl_setopt( $ch, CURLOPT_PUT, 1 );
             curl_setopt( $ch, CURLOPT_POSTFIELDS, $data );
         }
 
@@ -323,6 +425,17 @@ class EchoPHP {
         if ( $this->config[ 'debug_mode' ] )
         {
             $this->debug[] = $object;
+        }
+    }
+
+    private function checkInventoryID( $eid )
+    {
+        if ( ! is_int( $eid ) || $eid < 1 )
+        {
+            $this->postError( [
+                'status' => 'error',
+                'message' => 'The card ID is not an integer.' ] );
+            return false;
         }
     }
 
