@@ -51,7 +51,7 @@ class EchoPHP {
             session_start();
         }
 
-        if ( ! $_SESSION[ 'echophp_session' ] || $_SESSION[ 'echophp_session' ] == '' )
+        if ( ! isset( $_SESSION[ 'echophp_session' ] ) || $_SESSION[ 'echophp_session' ] == '' )
         {
             $token = $this->authenticate();
             if ( $token )
@@ -300,6 +300,80 @@ class EchoPHP {
 
         return $response;
     }
+
+
+    /**
+     * CARD REFERENCE */
+
+    /**
+     * Search EchoMTG's card list to return the appropriate ID
+     *
+     * @param string $cardname (card name to search)
+     * @param string $setcode (optional set code, otherwise first match returns)
+     * @return int $mid
+     */
+    public function cardReference( $cardname = '', $setcode = false )
+    {
+        // make sure a card name was passed in
+        if ( trim( $cardname ) == '' || strlen( trim( $cardname ) ) == 0 )
+        {
+            $this->postError( [
+                'status' => 'error',
+                'message' => 'You need to pass a card name to search' ] );
+        }
+
+        // pull in the master list
+        $cards = $this->sendPost(
+            'data/card_reference/',
+            [],
+            true,
+            'get' );
+
+        // currently we have to iterate over this object to search
+        // the api call needs to take a parameter to search in the future
+        $results = [];
+        foreach ( $cards->cards as $mid => $card )
+        {
+            if ( $card->name == $cardname )
+            {
+                $results[ $mid ] = $card;
+            }
+        }
+
+        // if we have a set code passed in, return just that row;
+        // otherwise return the earliest printing (lowest ID)
+        if ( count( $results ) > 0 )
+        {
+            if ( $setcode )
+            {
+                foreach ( $results as $id => $result )
+                {
+                    if ( strtolower( $result->set_code ) == strtolower( $setcode ) )
+                    {
+                        return $id;
+                    }
+                }
+                $this->postError( [
+                    'status' => 'error',
+                    'message' => 'No cards matched your search.' ] );
+            }
+            else
+            {
+                ksort( $results );
+                return array_keys( $results )[ 0 ];
+            }
+        }
+        else
+        {
+            $this->postError( [
+                'status' => 'error',
+                'message' => 'No cards matched your search.' ] );
+        }
+    }
+
+
+    /**
+     * UTILITIES */
 
     /**
      * Send an authentication request

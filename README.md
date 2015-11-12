@@ -7,11 +7,11 @@ This PHP library is currently in development/beta testing and provided as-is.
 
 Make sure you have an EchoMTG account (you can register for free). The API does not currently support OAuth so all authentication is done via encrypted posts.
 
-Copy the `api.php` library file into your project and instantiate a new object:
+Copy the `config.ini` file and rename it `config.local.ini`, then set the account email and password there. Make sure the `api.php` library file is in the same folder as the .ini file in your project and instantiate a new object:
 
     require 'api.php';
 
-    $echomtg = new EchoPHP( 'foo@bar.com', 'password' );
+    $echomtg = new EchoPHP();
     $echomtg->initSession();
 
 Note: `initSession()` will check to see if your auth token has been saved to your current session; if it isn't, it posts to `/user/auth` to sign in you.
@@ -28,7 +28,13 @@ To add a card individually, use the `addCard()` method:
 
     $echomtg->addCard( 4797, 1, 1.50, '08-20-2015', 0 );
 
-The only required parameter is the first one, the card's [Mutiverse ID](http://gatherer.wizards.com), i.e., it's ID in Gatherer. There are two ways to get this. First is usings EchoMTG's card reference call, you have to AUTH'd to make this call, https://www.echomtg.com/api/data/card_reference/auth=XXXXXXXXXXXXXXX (available in JSON, XML, or CSV.. full reference in the EchoMTG API), this reference is important because Promo cards do not have a Multiverse ID, but they are assigned them by EchoMTG in this reference. This allows you to add promo cards programmatically. Alternatively you can get Multiverse ID's by hand by searching for the card/printing there or using the [MTGJson](http://mtgjson.com) API (or similar services).
+The only required parameter is the first one, the card's [Mutiverse ID](http://gatherer.wizards.com), i.e., it's ID in Gatherer. There are two ways to get this:
+
+1. The preferred method is EchoMTG's card reference call, accessible here via the `cardReference()` method. This reference is important because Promo cards **do not** have a Multiverse ID but they are assigned them by EchoMTG in this reference, allowing you to add promo cards programmatically. This method takes a string for the card name and, optionally, set code to search and returns the ID:
+
+        $echomtg->cardReference( 'Verdant Force', 'tmp' );
+
+2. Alternatively you can get Multiverse ID's by hand by searching for the card/printing at Gatherer or using the [MTGJson](http://mtgjson.com) API (or similar services).
 
 The other parameters are quantity, your purchase price, the date of your purchase in mm-dd-yyyy format, and whether the card is foil (1) or not (0).
 
