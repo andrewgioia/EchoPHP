@@ -189,7 +189,7 @@ class EchoPHP {
             'inventory/adjust/',
             $request,
             true,
-            'put' );
+            'post' );
 
         // set some debug logging
         $this->debugInfo( [ 'adjust_price' => $response ] );
@@ -222,7 +222,7 @@ class EchoPHP {
             'inventory/toggle_foil/',
             $request,
             true,
-            'put' );
+            'post' );
 
         // set some debug logging
         $this->debugInfo( [ 'toggle_foil' => $response ] );
@@ -255,7 +255,7 @@ class EchoPHP {
             'inventory/adjust_date/',
             $request,
             true,
-            'put' );
+            'post' );
 
         // set some debug logging
         $this->debugInfo( [ 'adjust_date' => $response ] );
@@ -272,9 +272,24 @@ class EchoPHP {
      *
      * @param int $start
      * @param int $end
+     * @param string $sort (price, cmc, foil_price, date_aquired, set)
+     * @param string $order (asc, desc)
+     * @param string $search (card name to search)
+     * @param string $color (Colorless, Multicolor, White, Blue, Black, Red, Green, Land)
+     * @param string $type (Planeswalker, Sorcery, Instant, Creature, Artifact,
+     *                      Enchantment, Legendary, Land)
+     * @param string $set_code (if showing only from a set)
      * @return array
      */
-    public function getInventory( $start = 0, $end = 9 )
+    public function getInventory(
+        $start = 0,
+        $end = 9,
+        $sort = 'date_acquired',
+        $order = 'desc',
+        $search = false,
+        $color = false,
+        $type = false,
+        $set_code = false )
     {
         // check that start and end are integers
         if ( ! is_int( $start ) || ! is_int( $end ) )
@@ -284,9 +299,41 @@ class EchoPHP {
                 'message' => 'Invalid card multiverse ID' ] );
         }
 
-        // set the data fields
+        // set the base data fields
         $query[ 'start' ] = $start;
         $query[ 'limit' ] = $end;
+        $query[ 'sort' ] = $sort;
+        $query[ 'order' ] = $order;
+
+        // searching by card name
+        if ( $search ) $query[ 'search' ] = $search;
+
+        // filtering by a color
+        $color_options = [
+            'Colorless', 'Multicolor', 'White', 'Blue', 'Black', 'Red',
+            'Green', 'Land' ];
+        if ( $color )
+        {
+            if ( in_array( $color, $color_options ) )
+            {
+                $query[ 'color' ] = $color;
+            }
+        }
+
+        // filtering by type
+        $type_options = [
+            'Planeswalker', 'Sorcery', 'Instant', 'Creature', 'Artifact',
+            'Enchantment', 'Legendary', 'Land' ];
+        if ( $type )
+        {
+            if ( in_array( $type, $type_options ) )
+            {
+                $query[ 'type' ] = $type;
+            }
+        }
+
+        // filtering by set code
+        if ( $set_code ) $query[ 'set_code' ] = $set_code;
 
         // attempt to add the card
         $response = $this->sendPost(
