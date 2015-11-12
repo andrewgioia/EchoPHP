@@ -1,6 +1,5 @@
 # EchoMTG PHP Library
-
-Basic wrapper for the [EchoMTG](http://echomtg.com) REST API to manage Magic: the Gathering card collections, prices, and values. See more information on API developments at [http://echomtg.com/api](http://echomtg.com/api).
+Basic wrapper for the [EchoMTG](https://www.echomtg.com) REST API to manage Magic: the Gathering card collections, prices, and values. See more information on API developments at [https://www.echomtg.com/api](https://www.echomtg.com/api).
 
 This PHP library is currently in development/beta testing and provided as-is.
 
@@ -29,7 +28,7 @@ To add a card individually, use the `addCard()` method:
 
     $echomtg->addCard( 4797, 1, 1.50, '08-20-2015', 0 );
 
-The only required parameter is the first one, the card's [Mutiverse ID](http://gatherer.wizards.com), i.e., it's ID in Gatherer. You can get this by hand by searching for the card/printing there or using the [MTGJson](http://mtgjson.com) API (or similar services).
+The only required parameter is the first one, the card's [Mutiverse ID](http://gatherer.wizards.com), i.e., it's ID in Gatherer. There are two ways to get this. First is usings EchoMTG's card reference call, you have to AUTH'd to make this call, https://www.echomtg.com/api/data/card_reference/auth=XXXXXXXXXXXXXXX (available in JSON, XML, or CSV.. full reference in the EchoMTG API), this reference is important because Promo cards do not have a Multiverse ID, but they are assigned them by EchoMTG in this reference. This allows you to add promo cards programmatically. Alternatively you can get Multiverse ID's by hand by searching for the card/printing there or using the [MTGJson](http://mtgjson.com) API (or similar services).
 
 The other parameters are quantity, your purchase price, the date of your purchase in mm-dd-yyyy format, and whether the card is foil (1) or not (0).
 
