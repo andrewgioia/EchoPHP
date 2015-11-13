@@ -265,7 +265,7 @@ class EchoPHP {
 
 
     /**
-     * VIEW INVENTORY */
+     * INVENTORY */
 
     /**
      * Get user's inventory
@@ -444,6 +444,205 @@ class EchoPHP {
 
 
     /**
+     * LISTS */
+
+    /**
+     * Get a specific list
+     *
+     * @param int $lid (list ID)
+     * @param $html (flag to return preformatted HTML view)
+     * @return array (list of lists)
+     */
+    public function getList( $lid = false, $html = false )
+    {
+        // validate the list id
+        $this->checkListID( $lid );
+
+        // set the fields
+        $fields = [
+            'list' => $lid,
+            'view' => ( $html ) ? 'true' : 'false' ];
+
+        // make the request
+        $response = $this->sendPost(
+            'lists/get/',
+            $fields,
+            true,
+            'get' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'get_list' => $response ] );
+
+        return $response;
+    }
+
+    /**
+     * Get all of the user's lists
+     *
+     * @param string $order (optional sort order)
+     * @return array
+     */
+    public function getAllLists( $order = 'last_edited' )
+    {
+        // set the optional sort order
+        $order_options = [ 'created', 'alpha_desc', 'alpha_asc', 'last_edited' ];
+        $fields[ 'order' ] = ( ! in_array( $order, $order_options ) )
+            ? 'last_edited'
+            : $order;
+
+        // send the request
+        $response = $this->sendPost(
+            'lists/all/',
+            $fields,
+            true,
+            'get' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'all_lists' => $response ] );
+
+        // cast as array and return just the lists
+        return (array)$response->lists;
+    }
+
+    /**
+     * Create a new list
+     *
+     * @param string $name (name of the list)
+     * @param string $description (description of the list)
+     * @return int $id (of newly created list)
+     */
+    public function createList( $name = '', $description = '' )
+    {
+        // make sure we have a name
+        if ( trim( $name ) == '' || strlen( trim( $name ) ) == 0 )
+        {
+            $this->postError( [
+                'status' => 'error',
+                'message' => 'You need to supply a name for the list' ] );
+        }
+
+        // set the request fields
+        $fields[ 'name' ] = $name;
+        $fields[ 'description' ] = $description;
+
+        // send the request
+        $response = $this->sendPost(
+            'lists/create/',
+            $fields,
+            true,
+            'post' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'create_list' => $response ] );
+
+        // if we have a successful new list, get the ID
+        if ( isset( $response->status ) && $response->status == 'success' )
+        {
+            $all_lists = $this->getAllLists();
+            rsort( $all_lists );
+            if ( is_array( $all_lists ) && count( $all_lists ) > 0 )
+            {
+                $newest_list = array_values( $all_lists )[ 0 ];
+                return ( isset( $newest_list->id ) )
+                    ? $newest_list->id
+                    : false;
+            }
+            else
+            {
+                $this->postError( [
+                    'status' => 'error',
+                    'message' => 'Error retreiving new list id; list was created.' ] );
+            }
+        }
+        else
+        {
+            $this->postError( [
+                'status' => 'error',
+                'message' => 'Error creating the new list' ] );
+        }
+    }
+
+    /**
+     * Edit the name or description of a list
+     *
+     * @param int $lid (ID of the list to edit)
+     * @param string $name (name of the list)
+     * @param string $description (description of the list)
+     * @return boolean
+     */
+    public function editList( $lid, $name = false, $description = false )
+    {
+        // validate the list id
+        $this->checkListID( $lid );
+
+        // if a name is set, make sure it isn't blank
+        if ( $name )
+        {
+            if ( trim( $name ) == '' || strlen( trim( $name ) ) == 0 )
+            {
+                $this->postError( [
+                    'status' => 'error',
+                    'message' => 'You need to supply a name for the list' ] );
+            }
+            else
+            {
+                $fields[ 'name' ] = $name;
+            }
+        }
+
+        // no need to validate the description, just pass it if it exists
+        if ( $description )
+        {
+            $fields[ 'description' ] = $description;
+        }
+
+        // send the request
+        $response = $this->sendPost(
+            'lists/edit/',
+            $fields,
+            true,
+            'post' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'edit_list' => $response ] );
+
+        // return true on success, otherwise false
+        return $this->returnStatus( $response );
+    }
+
+    /**
+     * Toggle a list's activated status (active or deactivated)
+     *
+     * @param int $lid (the ID of the list to toggle)
+     * @param boolean $status (0 for deactivated, 1 for active)
+     * @return boolean (true for success, false for failure)
+     */
+    public function toggleListStatus( $lid, $status = 1 )
+    {
+        // validate the list id
+        $this->checkListID( $lid );
+
+        // create the field array
+        $fields[ 'status' ] = ( in_array( $status, [ 0, 1 ] ) )
+            ? $status
+            : 1;
+
+        // send the request
+        $response = $this->sendPost(
+            'lists/toggle_status/',
+            $fields,
+            true,
+            'post' );
+
+        // set some debug logging
+        $this->debugInfo( [ 'toggle_list_status' => $response ] );
+
+        // return true on success, otherwise false
+        return $this->returnStatus( $response );
+    }
+
+
+    /**
      * UTILITIES */
 
     /**
@@ -584,4 +783,28 @@ class EchoPHP {
         }
     }
 
+    private function checkListID( $lid )
+    {
+        if ( ! is_int( $lid ) || $lid < 1 )
+        {
+            $this->postError( [
+                'status' => 'error',
+                'message' => 'The list ID is not an integer.' ] );
+            return false;
+        }
+    }
+
+    private function returnStatus( $response )
+    {
+        if ( is_object( $response ) && isset( $response->status ) )
+        {
+            return ( $response->status == 'success' )
+                ? true
+                : false;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }
