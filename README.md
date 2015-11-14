@@ -70,6 +70,30 @@ E.g., the following returns the most recent 10 cards that are green legends, sor
 
 Call the `getStats()` method to return the user's inventory stats. This takes no parameters and sends an authenticated GET.
 
+### Lists
+
+#### Get a specific list
+
+With the list ID you can get a specific list and its attributes/cards by calling the `getList()` method and passing the list ID in. There is an optional second parameter that will return the list and cards formatted in HTML when you pass `true` in.
+
+#### Return all user's lists
+
+To get the full list of lists for a user call the `getAllLists()` method. This only takes one parameter for sort order, which can be `created`, `alpha_desc`, `alpha_asc`, or `last_edited`. The default is last_edited.
+
+#### Create a list
+
+Call the `createList()` method to create a new list. This requires a name for the list as the first parameter, with an optional description as the second parameter.
+
+This method returns the list ID of the newly created list, if it was successful.
+
+#### Edit a list
+
+You can edit a list if you have the list ID by calling the `editList()` method. It requires the list ID as the first parameter, then the name and description as the next two if you want to edit them.
+
+#### Toggle a list as activated or deactivated
+
+To toggle a list's status as activated or deactivated, call the `toggleListStatus()` method with the list ID as the first parameter. Pass in a `1` to flag it as active or a `0` to flag it as deactivated.
+
 ## Debugging
 
 To enable debugging mode, set the class property `$debug_mode` to true in `api.php`. This adds all auth, session, and requests/responses to the `$debug` property. Output that to view the current debugging log:
