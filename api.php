@@ -575,6 +575,9 @@ class EchoPHP {
         // validate the list id
         $this->checkListID( $lid );
 
+        // set the list ID
+        $fields[ 'list' ] = $lid;
+
         // if a name is set, make sure it isn't blank
         if ( $name )
         {
@@ -623,6 +626,7 @@ class EchoPHP {
         $this->checkListID( $lid );
 
         // create the field array
+        $fields[ 'list' ] = $lid;
         $fields[ 'status' ] = ( in_array( $status, [ 0, 1 ] ) )
             ? $status
             : 1;
