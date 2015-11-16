@@ -147,11 +147,12 @@ if ( ! empty( $_FILES ) )
     // show the csv list if we have that set
     if ( $ids_only )
     {
+        echo "<h5>Copy this as a new CSV:</h5><blockquote><pre><strong>id,name,set,quantity,price,date</strong>\n";
         foreach ( $csv as $i => $card )
         {
-            echo implode( ',', $card );
+            echo implode( ',', $card ).'<br />';
         }
-        echo "<hr />";
+        echo "</pre></blockquote>";
     }
 
 }
@@ -173,6 +174,8 @@ if ( ! empty( $_FILES ) )
         input[type="submit"] { -webkit-appearance: none; font-size: 15px;
             border-radius: 5px; border: none; background: #007db6; color: #fff;
             padding: 6px 12px 7px; border-bottom: 2px solid #006593; cursor: pointer; }
+        blockquote { background: #eee; margin: 0 0 50px; padding: 10px 25px;
+            border-left: 3px solid #ccc; border-radius: 3px; line-height: 1.3em; }
     </style>
 </head>
 <body>
