@@ -83,6 +83,13 @@ if ( ! empty( $_FILES ) )
 
     }
 
+    // check if we're just outputting the MIDs
+    $ids_only = false;
+    if ( isset( $_POST[ 'ids_only' ] ) && $_POST[ 'ids_only' ] == '1' )
+    {
+        $ids_only = true;
+    }
+
     // get the file contents
     $contents = file_get_contents( $new_file_path );
 
@@ -100,14 +107,51 @@ if ( ! empty( $_FILES ) )
     // iterate over the rows and submit the cards
     foreach ( $rows as $row )
     {
+        // parse out the card values
         $card = str_getcsv( $row, ',' );
         $name = $card[ 0 ];
         $set = $card[ 1 ];
         $quantity = $card [ 2 ];
         $price = $card[ 3 ];
         $date = $card[ 4 ];
-        // $mid = $echo->cardReference( $name, $set );
-        // $response = $echo->addCard( $mid, $quantity, $price, $date )
+
+        // get the multiverse ID
+        $mid = $echo->cardReference( $name, $set );
+
+        // if we're good, add the card or build the print to screen
+        if ( $mid )
+        {
+            if ( ! $ids_only )
+            {
+                $response = $echo->addCard( $mid, $quantity, $price, $date );
+                if ( ! $response )
+                {
+                    $errors[ 'adds'] = [ $mid, $name, $set, $quantity, $price, $date ];
+                }
+                else
+                {
+                    $success[] = [ $mid, $name, $set, $quantity, $price, $date ];
+                }
+            }
+            else
+            {
+                $csv[] = [ $mid, $name, $set, $quantity, $price, $date ];
+            }
+        }
+        else
+        {
+            $errors[ 'mids' ] = $card;
+        }
+    }
+
+    // show the csv list if we have that set
+    if ( $ids_only )
+    {
+        foreach ( $csv as $i => $card )
+        {
+            echo implode( ',', $card );
+        }
+        echo "<hr />";
     }
 
 }
@@ -118,6 +162,18 @@ if ( ! empty( $_FILES ) )
 <html>
 <head>
     <title>Import cards to EchoMTG</title>
+    <style type="text/css">
+        body { font-family: Helvetica, arial, sans-serif; padding: 20px 25px;
+            border-top: 3px solid #006593; margin: 0; }
+        label { display: block; font-weight: bold; margin: 0 0 10px; }
+        fieldset { border: 1px solid #aaa; border-radius: 5px; padding: 0 20px; }
+        legend { color: #007db6; font-size: 19px; font-weight: bold; padding: 0 10px; }
+        p { margin: 20px 0; }
+        a { color: #007db6; }
+        input[type="submit"] { -webkit-appearance: none; font-size: 15px;
+            border-radius: 5px; border: none; background: #007db6; color: #fff;
+            padding: 6px 12px 7px; border-bottom: 2px solid #006593; cursor: pointer; }
+    </style>
 </head>
 <body>
     <h2>Import cards to your EchoMTG inventory</h2>
@@ -125,8 +181,19 @@ if ( ! empty( $_FILES ) )
         Select your .csv file below then click the "Import" button. Make sure your .csv is formatted the same way as the <a href="import_template.csv">template file</a>.
     </p>
     <form action="import.php" method="post" enctype="multipart/form-data">
-        <input type="file" name="file" />
-        <input type="submit" value="Import" />
+        <fieldset>
+            <legend>Upload cards by CSV</legend>
+            <p>
+                <label for="file">Select a CSV file to upload:</label>
+                <input type="file" name="file" />
+            </p>
+            <p>
+                <input type="checkbox" name="ids_only" value="1" /> Create CSV of Multiverse IDs only (i.e., don't add the cards!)
+            </p>
+            <p>
+                <input type="submit" value="Import" />
+            </p>
+        </fieldset>
     </form>
 </body>
 </html>
