@@ -166,6 +166,39 @@ class EchoPHP {
 
         return $response;
     }
+    
+     /**
+     * Adjust acquisition price of a card in inventory
+     * NM  = Near Mint
+     * LP  = Lightly Played
+     * MP  = Moderately Played
+     * HP  = Heavily Played
+     * D   = Damaged
+     * ALT = Altered
+     * SGN = Signed
+     * 
+     * @param int @eid (echo inventory ID for the card)
+     * @param float $condition (adjusted condition)
+     * @return array
+     */
+    public function adjustCondition( $eid, $condition )
+    {
+        // check that we have an integer first
+        $this->checkInventoryID( $eid );
+        // set the parameters
+        $request = [
+            'id' => $eid,
+            'value' => $condition ];
+        // attempt to remove the card
+        $response = $this->sendPost(
+            'inventory/change_condition/',
+            $request,
+            true,
+            'post' );
+        // set some debug logging
+        $this->debugInfo( [ 'adjust_condition' => $response ] );
+        return $response;
+    }
 
     /**
      * Adjust acquisition price of a card in inventory
