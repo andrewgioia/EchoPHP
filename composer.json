@@ -1,0 +1,7 @@
+{
+    "name": "ardeay/EchoMTG",
+    "description": "Basic wrapper for the EchoMTG.com REST API",
+    "require": {
+        "php": ">=5.3.0"
+    }
+}
